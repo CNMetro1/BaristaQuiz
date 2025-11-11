@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nero Barista Knowledge Quiz - Randomized</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* --- MONOCHROMATIC THEME --- */
+        /* Set base colors to pure black and white */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000;
+            color: #fff;
+            padding-bottom: 2rem;
+        }
+        .quiz-container {
+            max-width: 600px;
+            min-height: 80vh;
+            background-color: #fff;
+            color: #000;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2); /* Subtle white shadow against black background */
+            padding: 1.5rem;
+            border: 4px solid #000; /* Strong black border */
+        }
+        .header-bg {
+            background-color: #000;
+            color: #fff;
+            border-bottom: 2px solid #fff;
+        }
+        
+        /* Primary Button Style (White default, Black hover) */
+        .button-primary {
+            background-color: #fff;
+            color: #000;
+            border: 2px solid #000;
+            transition: all 0.2s ease-in-out;
+            font-weight: 700;
+            border-radius: 8px;
+        }
+        .button-primary:hover:not(:disabled) {
+            background-color: #000;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Answer Option Styling */
+        .answer-option {
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            border: 2px solid #000;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .answer-option:hover {
+            background-color: #f0f0f0; /* Slight gray hover */
+        }
+        /* Selected (Monochromatic High Contrast) */
+        .selected {
+            background-color: #000 !important;
+            border-color: #000 !important;
+            color: #fff !important;
+            font-weight: 700;
+        }
+        
+        /* Feedback Colors (Necessary Exceptions for UX Clarity) */
+        .correct {
+            background-color: #38a169 !important; /* Green */
+            color: #fff !important;
+            border-color: #38a169 !important;
+        }
+        .incorrect {
+            background-color: #e53e3e !important; /* Red */
+            color: #fff !important;
+            border-color: #e53e3e !important;
+        }
+        .result-box {
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center p-4">
+
+    <header class="header-bg p-4 mb-6 w-full max-w-4xl sticky top-0 z-10 text-center rounded-b-lg">
+        <h1 class="text-3xl font-extrabold tracking-tight">
+            Nero Barista Knowledge Quiz
+        </h1>
+        <p class="text-sm opacity-80 mt-1">
+            Test your expertise on the core principles and recipes. (30 Questions selected randomly)
+        </p>
+    </header>
+
+    <div id="quiz-app" class="quiz-container w-full">
+        <!-- Quiz content will be injected here -->
+        <div class="text-center p-10">
+            <h2 class="text-xl font-bold">Ready to Start?</h2>
+            <p class="mt-2">This is a randomized quiz featuring 30 questions from a pool of 50.</p>
+            <button id="start-button" class="mt-6 px-8 py-3 button-primary text-xl">
+                Start Quiz
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- Full Question Pool (50 Questions) ---
+        const fullQuestionPool = [
+            // --- Section 1: Brilliant at the Basics (4 Qs) ---
+            {
+                question: "Which core principle is defined by a Barista being personally responsible for a customer's entire experience, from greeting to payment?",
+                options: ["Walk the Walk", "2 at a time all the time", "Brilliant at the Basics", "1-2-1 service every time"],
+                answer: "1-2-1 service every time",
+                info: "1-2-1 service is Caffè Nero's unique service style that ensures personal interaction."
+            },
+            {
+                question: "Which term is defined as 'walking consciously through the store, seeing it through the eyes of a customer'?",
+                options: ["1-2-1 service", "Clean & Clear", "Walk the Walk", "2 at a time"],
+                answer: "Walk the Walk",
+                info: "Walk the Walk is a core 'Brilliant at the Basics' principle focused on improving the customer's experience."
+            },
+            {
+                question: "How many customers must be greeted and have their orders taken simultaneously under the '2 at a time all the time' rule?",
+                options: ["1 customer", "2 customers", "3 customers", "As many as possible"],
+                answer: "2 customers",
+                info: "The '2 at a time all the time' rule ensures the Barista is efficient and engages with multiple people quickly."
+            },
+            {
+                question: "The core principles of Caffè Nero are collectively called what?",
+                options: ["Golden Rules", "The 6 Steps", "Brilliant at the Basics", "Customer is King"],
+                answer: "Brilliant at the Basics",
+                info: "These principles were created at the start of the company to drive great, personalised customer service."
+            },
+            // --- Section 2: 6 Steps of Service (6 Qs) ---
+            {
+                question: "What is the very first step in the 6 Steps of Service?",
+                options: ["Serve & Make", "Sell", "Smile and Greet", "App & Pay"],
+                answer: "Smile and Greet",
+                info: "The first step is to acknowledge the customer as soon as they join the queue."
+            },
+            {
+                question: "Which step includes recommending specific food items to complement the customer's drink?",
+                options: ["Step 2 – Serve & Make", "Step 3 – Sell", "Step 4 – App & Pay", "Step 5 – Sugar & Condiments"],
+                answer: "Step 3 – Sell",
+                info: "Step 3 involves finding the perfect partners—offering the right food with the right drink."
+            },
+            {
+                question: "Which piece of information is NOT one of the three mandatory items to confirm when taking a customer's order in Step 2 (Serve & Make)?",
+                options: ["Which drink they would like", "Is it to drink in or take away", "Do they have the App", "What size (Mug or cup)"],
+                answer: "Do they have the App",
+                info: "Asking about the App is Step 4. Step 2 requires confirming drink, size, and location (in/away)."
+            },
+            {
+                question: "What is the purpose of Step 5 (Sugar & Condiments)?",
+                options: ["To clear dirty cups", "To upsell food items", "To direct customers to water, napkins, and sugar", "To process payment quickly"],
+                answer: "To direct customers to water, napkins, and sugar",
+                info: "This step ensures customers know where to get everything they need for their drink."
+            },
+            {
+                question: "When upselling (Step 3), what is the best practice regarding product names?",
+                options: ["Be generic and offer 'a pastry'", "Be specific and say the name of the product", "Sell your cheapest item first", "Only sell items the customer asks about"],
+                answer: "Be specific and say the name of the product",
+                info: "Being specific ensures a personalized experience and makes the recommendation more engaging."
+            },
+            {
+                question: "What must you ensure all customers leave with in Step 6 (Say Thank You and Goodbye)?",
+                options: ["A loyalty stamp", "An extra napkin", "A smile", "A business card"],
+                answer: "A smile",
+                info: "The goal of the final step is to invite them back and ensure they leave with a smile."
+            },
+            // --- Section 3: Barista Priorities (5 Qs) ---
+            {
+                question: "According to Barista Priorities, what is the action taken if there are '3 or more' customers in the queue?",
+                options: ["2 or less, clean the mess", "3 or more, off the floor", "Clean as you go", "Restock the pastry display"],
+                answer: "3 or more, off the floor",
+                info: "3 or more customers means a minimum of 2 Baristas should be serving them ('off the floor' refers to getting more staff to the bar)."
+            },
+            {
+                question: "According to the '2 or less, clean the mess' rule, what is the primary activity Baristas should prioritize when the queue is short?",
+                options: ["Washing Up", "Restocking the bar", "Cleaning tables, collecting cups, and litter", "Grinding and tamping new coffee"],
+                answer: "Cleaning tables, collecting cups, and litter",
+                info: "This relates to the 'Clean & Clear' priority, which involves clearing cups, cleaning tables, and picking up litter, starting from outside and working toward the bar."
+            },
+            {
+                question: "What does 'FIFO' stand for and where is it primarily used?",
+                options: ["Fast In, Fast Out (Cleaning)", "First In, First Out (Restocking)", "Formulate Immediately, Focus On (Customer Service)", "Foam In, Foam Out (Milk Steaming)"],
+                answer: "First In, First Out (Restocking)",
+                info: "FIFO must always be followed when restocking food to ensure quality and freshness."
+            },
+            {
+                question: "What is the correct order of Barista Priorities after Customer Service (Queue Management)?",
+                options: ["Washing Up, Restocking, Clean & Clear", "Restocking, Washing Up, Clean & Clear", "Clean & Clear, Restocking, Washing Up", "Restocking, Clean & Clear, Washing Up"],
+                answer: "Clean & Clear, Restocking, Washing Up",
+                info: "The priorities are: Customer Is King, Clean & Clear, Restocking, and finally Washing Up."
+            },
+            {
+                question: "What is the specific tool set used for the 'Clean & Clear' Barista Priority?",
+                options: ["Black tray, dry white cloth, and Detergent", "Grey tray, damp clean blue cloth, and Sanitising spray", "Yellow bucket, sponge, and Floor cleaner", "Microfiber cloth, glass cleaner, and water"],
+                answer: "Grey tray, damp clean blue cloth, and Sanitising spray",
+                info: "These specific items are mandatory for maintaining cleanliness standards."
+            },
+            // --- Section 4: Golden Rules (5 Qs) ---
+            {
+                question: "According to Golden Rule 4, what is the 'Perfect Rate of Pour for Espresso'?",
+                options: ["15 seconds +/- 1 second", "21 seconds +/- 1 second", "25 seconds +/- 2 seconds", "30 seconds exactly"],
+                answer: "21 seconds +/- 1 second",
+                info: "Any espresso outside of this range should not be served to customers."
+            },
+            {
+                question: "According to Golden Rule 1 (Flush), which button must be pressed immediately after removing the handle?",
+                options: ["Button 1", "Button 2", "Button 3", "Button 4"],
+                answer: "Button 3",
+                info: "Pressing Button 3 flushes the group head to remove excess coffee grounds."
+            },
+            {
+                question: "What is the primary purpose of **wiping the handle rim** clean (Golden Rule 2)?",
+                options: ["To improve crema quality", "To prevent damage to the rubber seal in the group head", "To ensure the dose is exactly 15g", "To make the coffee run slower"],
+                answer: "To prevent damage to the rubber seal in the group head",
+                info: "Wiping the handle removes coffee grounds from the rim, preventing damage to the rubber seal."
+            },
+            {
+                question: "In Golden Rule 3 (Purge and Wipe), what color is the cloth dedicated to wiping the steam wand?",
+                options: ["Blue", "Red", "Yellow", "White"],
+                answer: "Red",
+                info: "The red cloth is specifically used for wiping the steam wand to remove milk residue."
+            },
+            {
+                question: "Why must the steam wand be **purged** before and after steaming (Golden Rule 3)?",
+                options: ["To cool the wand down", "To clean the milk jug", "To remove condensed water and old milk/water", "To lubricate the seals"],
+                answer: "To remove condensed water and old milk/water",
+                info: "Purging is essential for hygiene and prevents watering down the milk with condensed water."
+            },
+            // --- Section 5 & 6: Great Coffee / Perfect Espresso (5 Qs) ---
+            {
+                question: "What is the expected color of the Crema for a Perfect Espresso?",
+                options: ["Dark Chocolate Brown", "Lemon Yellow", "Hazelnut Brown", "Light Tan"],
+                answer: "Hazelnut Brown",
+                info: "Perfect Espresso targets include a Hazelnut brown crema."
+            },
+            {
+                question: "What is the Dose target (in grams) for a Perfect Espresso?",
+                options: ["10–12g", "12–13g", "14–15g", "16–18g"],
+                answer: "14–15g",
+                info: "The dose target for perfect extraction is 14–15g of ground coffee."
+            },
+            {
+                question: "What is the consequence of an **over-extracted** (too slow) espresso, typically caused by a fine grind?",
+                options: ["Sour/weak taste", "Bitter taste", "Metallic taste", "Salty taste"],
+                answer: "Bitter taste",
+                info: "A fine grind leads to over-extraction, resulting in a bitter taste."
+            },
+            {
+                question: "An **under-extracted** espresso, caused by a coarse grind, results in what taste profile?",
+                options: ["Sour/weak taste", "Bitter taste", "Oily taste", "Spicy taste"],
+                answer: "Sour/weak taste",
+                info: "A coarse grind causes under-extraction because the water flows too quickly."
+            },
+            {
+                question: "What is the core promise of the Caffè Nero 'coffee guarantee'?",
+                options: ["A free pastry with every drink", "A loyalty stamp with every order", "We promise to make your coffee exactly how you like it", "We guarantee 21-second espresso"],
+                answer: "We promise to make your coffee exactly how you like it",
+                info: "If a coffee doesn't meet a customer's expectations, you should simply remake it."
+            },
+            // --- Section 7: Preparing a Handle (5 Qs) ---
+            {
+                question: "When preparing the handle, after tamping, what is the next step before inserting it into the group head?",
+                options: ["Press button 3 to flush", "Gently level the coffee ground", "Wipe the handle rim clean", "Press button 4"],
+                answer: "Wipe the handle rim clean",
+                info: "After tamping (and hearing the click), you must wipe the rim clean before insertion."
+            },
+            {
+                question: "In the 8 Steps for Preparing the Handle, how many times should you press the coffee dispenser button?",
+                options: ["Zero, it dispenses automatically", "Once", "Twice, for a double shot", "Continuously until the dose is full"],
+                answer: "Once",
+                info: "You press the button once with the handle on the holder, and do not remove it until the grinder stops dispensing."
+            },
+            {
+                question: "What action is necessary to ensure the coffee bed is even before tamping?",
+                options: ["Tamping quickly", "Pressing button 4", "Gently leveling the coffee ground with the palm of your hand", "Tapping the side of the handle"],
+                answer: "Gently leveling the coffee ground with the palm of your hand",
+                info: "Levelling the coffee grounds ensures an even surface for perfect extraction."
+            },
+            {
+                question: "What sound confirms a successful tamp when placing the handle onto the handle rest of the tamper?",
+                options: ["A fizzing sound", "A click", "A grinding noise", "A hiss"],
+                answer: "A click",
+                info: "You should pull down on the tamper until you hear a click, indicating correct pressure."
+            },
+            {
+                question: "Which group head button is used for extracting a standard **Espresso/Ristretto**?",
+                options: ["Button 1", "Button 2", "Button 3", "Button 4"],
+                answer: "Button 2",
+                info: "Button 2 is used for a standard single or double shot espresso or ristretto timed extraction."
+            },
+            // --- Section 8: Milk Steaming (5 Qs) ---
+            {
+                question: "When pouring milk into the jug for steaming, the steam wand should be placed just ______ the surface of the milk.",
+                options: ["Touching", "Above", "Below", "Exactly level with"],
+                answer: "Below",
+                info: "The steam wand must be placed just below the surface of the milk to start, and should never touch the bottom of the jug."
+            },
+            {
+                question: "During Milk Steaming, what is the maximum air injection level when steaming in **Latte style**?",
+                options: ["20 degrees", "30 degrees", "40 degrees", "50 degrees"],
+                answer: "30 degrees",
+                info: "Latte style requires air injection up to 30 degrees to create moderate microfoam."
+            },
+            {
+                question: "What noise confirms that you are correctly **injecting air** into the milk?",
+                options: ["A hissing sound", "A grinding sound", "A loud whistle", "A chirping sound"],
+                answer: "A chirping sound",
+                info: "A chirping sound indicates the steamer is level with the milk surface and correctly adding air."
+            },
+            {
+                question: "What spinning motion must be created after injecting air to incorporate the air bubbles into the milk?",
+                options: ["The Turbine", "The Spiral", "The Swirl", "The Vortex"],
+                answer: "The Vortex",
+                info: "The Vortex is the spinning motion used to create a glossy, silky microfoam."
+            },
+            {
+                question: "After stopping the steam wand, how long should you wait before tapping and swirling the milk jug (Bang And Swirl)?",
+                options: ["1–2 seconds", "4–6 seconds", "8–10 seconds", "Immediately"],
+                answer: "4–6 seconds",
+                info: "Waiting 4–6 seconds allows the larger bubbles to rise to the surface so they can be burst by tapping."
+            },
+            // --- Section 9: Hot Drinks Recipes (5 Qs) ---
+            {
+                question: "How many shots of espresso are required for a Grande **Americano**?",
+                options: ["1 shot", "2 shots", "3 shots", "4 shots"],
+                answer: "3 shots",
+                info: "A Grande Americano requires 3 shots, while a Regular Americano requires 2 shots."
+            },
+            {
+                question: "When making a Hot Chocolate (Grande, Drink In or Takeaway), how many scoops of chocolate powder are required?",
+                options: ["1 scoop", "2 scoops", "3 scoops", "4 scoops"],
+                answer: "3 scoops",
+                info: "Grande Hot Chocolate (12oz) requires 3 scoops of chocolate."
+            },
+            {
+                question: "What is the target foam height for a **Latte**?",
+                options: ["0.5–1cm", "1–1.5cm", "2–2.5cm", "3cm or more"],
+                answer: "1–1.5cm",
+                info: "Lattes require 1–1.5cm of foam (Latte style pour)."
+            },
+            {
+                question: "What technique is specifically used to mix the chocolate powder and coffee when making a Mocha?",
+                options: ["A whisk", "A spoon", "A milk frother", "Shaking the cup"],
+                answer: "A whisk",
+                info: "A whisk is required to fully blend the powder/sauce with the espresso shot."
+            },
+            {
+                question: "When preparing a Hot Chocolate, how many scoops of chocolate powder are used for a Regular Drink In (8oz)?",
+                options: ["1 scoop", "2 scoops", "3 scoops", "4 scoops"],
+                answer: "2 scoops",
+                info: "Both Regular Drink In (8oz) and Regular Takeaway (10oz) require 2 scoops of powder."
+            },
+            // --- Section 9: Iced Drinks Recipes (4 Qs) ---
+            {
+                question: "What water line must be used for the water (from the iced water jug) when preparing an **Iced Americano**?",
+                options: ["Line 1", "Line 2", "Line 3", "Line 4"],
+                answer: "Line 4",
+                info: "Iced Americano water is filled to line 4."
+            },
+            {
+                question: "How many flat BLUE scoops of frappe powder are used in a **Frappe Latte**?",
+                options: ["1 flat BLUE scoop", "2 flat BLUE scoops", "1 heaped BLUE scoop", "2 heaped BLUE scoops"],
+                answer: "2 flat BLUE scoops",
+                info: "Frappe Latte requires 2 flat BLUE scoops of frappe powder and Program 1 on the blender."
+            },
+            {
+                question: "In the recipe for **Iced Velvet Americano**, which blender program is used?",
+                options: ["Program 1", "Program 2", "Program 3", "Program 4"],
+                answer: "Program 3",
+                info: "Iced Velvet Americano is a blended drink using Program 3."
+            },
+            {
+                question: "What is the blend step for an **Iced Flat White** (before serving)?",
+                options: [
+                    "Combine skimmed milk line 2 and Ice line 4 in the red jug.",
+                    "Add 4 ice cubes and extracted espresso into the RED jug. Blend Program 3.",
+                    "Add 2 pumps syrup and 3 pumps sauce into the jug. Blend Program 1.",
+                    "Combine whole milk line 2 and espresso in the cup."
+                ],
+                answer: "Add 4 ice cubes and extracted espresso into the RED jug. Blend Program 3.",
+                info: "The espresso shot is foamed by blending it with 4 ice cubes using Program 3, then poured over cold milk/ice."
+            },
+            // --- Section 9: Luxury Drinks Recipes (4 Qs) ---
+            {
+                question: "What is the temperature target for steaming the **Luxury Hot Chocolate** base?",
+                options: ["50°C", "55°C", "60°C", "65°C"],
+                answer: "60°C",
+                info: "The Luxury Chocolate Base is heated to 60°C, the same as dairy milk."
+            },
+            {
+                question: "Which size does the **White Chocolate Mocha** recipe specify for preparation?",
+                options: ["Regular Size Only", "Large Size Only", "Grande Size Only", "Available in all sizes"],
+                answer: "Grande Size Only",
+                info: "The White Chocolate Mocha recipe specifies Grande size only, requiring 2 shots of espresso and 2 pumps of white chocolate sauce."
+            },
+            {
+                question: "How many pumps of **vanilla syrup** are added to the Luxury Caramel Latte?",
+                options: ["1 pump", "2 pumps", "3 pumps", "4 pumps"],
+                answer: "3 pumps",
+                info: "The Luxury Caramel Latte recipe calls for 3 pumps of vanilla syrup, topped with whipped cream and caramel drizzle."
+            },
+            {
+                question: "When preparing the **Espresso Caramel Frappe**, which ingredients are blended using Program 1?",
+                options: [
+                    "Extracted Espresso, Whole milk line 2, and Ice line 8.",
+                    "Extracted Espresso, 4 pumps frappe syrup, and 3 pumps caramel sauce.",
+                    "Luxury Chocolate line 1 and 4 pumps frappe syrup.",
+                    "Whole milk line 4, Ice line 7, and extracted espresso."
+                ],
+                answer: "Extracted Espresso, 4 pumps frappe syrup, and 3 pumps caramel sauce.",
+                info: "These are the key flavor ingredients blended with the milk and ice mixture (Whole milk line 2 + Ice line 8) using Program 1."
+            },
+            // --- Section 10: Milk Guide & Allergy Protocol (7 Qs) ---
+            {
+                question: "What is the target temperature for steaming **Dairy Milk** (Whole, Semi-Skimmed, Skimmed)?",
+                options: ["50°C", "55°C", "60°C", "65°C"],
+                answer: "60°C",
+                info: "Dairy Milk has a target temperature of 60°C."
+            },
+            {
+                question: "What is the target temperature for steaming **Milk Alternatives** (Oat, Soya, Coconut, Almond)?",
+                options: ["50°C", "55°C", "60°C", "65°C"],
+                answer: "50°C",
+                info: "Alternative milks have a lower target temperature (50°C) to prevent curdling or flavor change."
+            },
+            {
+                question: "Which color-coded jug is dedicated for the **Luxury Chocolate Base**?",
+                options: ["Brown Tag Jug", "Black Tag Jug", "Purple Tag Jug", "Silver Jug"],
+                answer: "Black Tag Jug",
+                info: "The Black Tag Jug is dedicated to the Luxury Chocolate Base."
+            },
+            {
+                question: "Which specific milk alternative is known to curdle easily above $55^{\circ} \text{C}$ and requires minimum air injection?",
+                options: ["Oat", "Coconut", "Almond", "Soya"],
+                answer: "Soya",
+                info: "Soya is very temperature-sensitive and must be stopped immediately at $50^{\circ} \text{C}$."
+            },
+            {
+                question: "What is the maximum storage temperature for milk?",
+                options: ["Below $4^{\circ} \text{C}$ ($40^{\circ} \text{F}$)", "Below $6^{\circ} \text{C}$ ($43^{\circ} \text{F}$)", "Below $8^{\circ} \text{C}$ ($46^{\circ} \text{F}$)", "Below $10^{\circ} \text{C}$ ($50^{\circ} \text{F}$)"],
+                answer: "Below $4^{\circ} \text{C}$ ($40^{\circ} \text{F}$)",
+                info: "Milk must always be stored below $4^{\circ} \text{C}$ ($40^{\circ} \text{F}$) to maintain quality."
+            },
+            {
+                question: "What should you use to thoroughly clean the steam wand before and after using alternative milks?",
+                options: ["A red cloth", "A sanitising probe wipe", "Running water only", "A dry towel"],
+                answer: "A sanitising probe wipe",
+                info: "This is the mandatory step to minimize cross-contamination risk for customers with allergies."
+            },
+            {
+                question: "Which color-coded jug is dedicated to **Oat Milk**?",
+                options: ["Yellow Tag Jug", "Purple Tag Jug", "White Tag Jug", "Pink Tag Jug"],
+                answer: "Purple Tag Jug",
+                info: "The Purple Tag Jug is for Oat Milk, while Yellow is Soya, White is Coconut, and Pink is Almond."
+            }
+        ];
+
+        let currentQuizQuestions = [];
+        const QUIZ_SIZE = 30; // The number of questions to randomly select
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswer = null;
+
+        const quizApp = document.getElementById('quiz-app');
+        
+        // --- Utility to Shuffle Array (Fisher-Yates) ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- Core Quiz Functions ---
+
+        function renderQuestion() {
+            const qData = currentQuizQuestions[currentQuestionIndex];
+            selectedAnswer = null;
+
+            const questionHtml = `
+                <div class="space-y-6">
+                    <div class="text-center">
+                        <p class="text-lg font-semibold text-gray-700">Question ${currentQuestionIndex + 1} of ${currentQuizQuestions.length}</p>
+                        <h2 class="text-2xl font-bold mt-2">${qData.question}</h2>
+                    </div>
+                    <div id="options-container" class="space-y-3">
+                        ${qData.options.map((option, index) => `
+                            <div class="answer-option p-4 border rounded-lg" data-answer="${option}">
+                                ${option}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="flex justify-between pt-4">
+                        <button id="submit-answer" class="px-6 py-2 button-primary" disabled>
+                            Submit Answer
+                        </button>
+                        <button id="next-question" class="px-6 py-2 button-primary opacity-0 pointer-events-none">
+                            Next Question 👉
+                        </button>
+                    </div>
+                    <div id="feedback" class="hidden"></div>
+                </div>
+            `;
+            quizApp.innerHTML = questionHtml;
+            attachListeners();
+        }
+        
+        function copyResultsToClipboard(scoreText, percentage, resultText) {
+            const textToCopy = `Nero Barista Knowledge Quiz Results:\n\nScore: ${scoreText}\nPercentage: ${percentage}%\nProficiency: ${resultText}\n\nKeep up the great work!`;
+
+            // Create temporary textarea element to hold text
+            const tempInput = document.createElement('textarea');
+            tempInput.value = textToCopy;
+            tempInput.style.position = 'absolute'; 
+            tempInput.style.left = '-9999px';
+            document.body.appendChild(tempInput);
+            tempInput.select();
+
+            let success = false;
+            const copyButton = document.getElementById('copy-results');
+            
+            try {
+                success = document.execCommand('copy');
+            } catch (err) {
+                console.error('Copy failed:', err);
+            }
+
+            document.body.removeChild(tempInput);
+
+            // Provide visual feedback
+            if (success) {
+                copyButton.textContent = 'Copied!';
+                copyButton.classList.add('correct');
+                setTimeout(() => {
+                    copyButton.textContent = 'Copy Results';
+                    copyButton.classList.remove('correct');
+                }, 2000);
+            } else {
+                 copyButton.textContent = 'Failed';
+                 copyButton.classList.add('incorrect');
+                setTimeout(() => {
+                    copyButton.textContent = 'Copy Results';
+                    copyButton.classList.remove('incorrect');
+                }, 2000);
+            }
+        }
+
+
+        function attachListeners() {
+            const optionsContainer = document.getElementById('options-container');
+            const submitButton = document.getElementById('submit-answer');
+            const nextButton = document.getElementById('next-question');
+            
+            // Answer selection logic
+            optionsContainer.querySelectorAll('.answer-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    if (nextButton.classList.contains('pointer-events-none')) {
+                        optionsContainer.querySelectorAll('.answer-option').forEach(o => o.classList.remove('selected'));
+                        option.classList.add('selected');
+                        selectedAnswer = option.getAttribute('data-answer');
+                        submitButton.disabled = false;
+                    }
+                });
+            });
+
+            // Submission logic
+            submitButton.addEventListener('click', handleSubmit);
+
+            // Navigation logic
+            nextButton.addEventListener('click', handleNext);
+        }
+
+        function handleSubmit() {
+            const qData = currentQuizQuestions[currentQuestionIndex];
+            const submitButton = document.getElementById('submit-answer');
+            const nextButton = document.getElementById('next-question');
+            const feedbackDiv = document.getElementById('feedback');
+            const optionsContainer = document.getElementById('options-container');
+
+            submitButton.disabled = true;
+            optionsContainer.querySelectorAll('.answer-option').forEach(o => o.style.pointerEvents = 'none');
+
+            const correctOption = optionsContainer.querySelector(`[data-answer="${qData.answer}"]`);
+            const selectedOption = optionsContainer.querySelector(`[data-answer="${selectedAnswer}"]`);
+            
+            let feedbackMessage = '';
+            
+            if (selectedAnswer === qData.answer) {
+                score++;
+                correctOption.classList.add('correct');
+                feedbackMessage = `<p class="font-bold text-lg text-green-700">Correct! Great job.</p>`;
+            } else {
+                if (selectedOption) {
+                    selectedOption.classList.remove('selected');
+                    selectedOption.classList.add('incorrect');
+                }
+                correctOption.classList.add('correct');
+                feedbackMessage = `<p class="font-bold text-lg text-red-700">Incorrect.</p>`;
+            }
+
+            feedbackDiv.innerHTML = `
+                <div class="result-box bg-gray-100 border-l-4 border-gray-500">
+                    ${feedbackMessage}
+                    <p class="mt-2 text-sm text-gray-800"><span class="font-semibold">Context:</span> ${qData.info}</p>
+                </div>
+            `;
+            feedbackDiv.classList.remove('hidden');
+            
+            nextButton.classList.remove('opacity-0', 'pointer-events-none');
+            // UPDATED: Use the new button text
+            nextButton.textContent = currentQuestionIndex === currentQuizQuestions.length - 1 ? 'View Results' : 'Next Question 👉';
+        }
+
+        function handleNext() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < currentQuizQuestions.length) {
+                renderQuestion();
+            } else {
+                renderResults();
+            }
+        }
+
+        function renderResults() {
+            const percentage = Math.round((score / currentQuizQuestions.length) * 100);
+            const scoreText = `${score} out of ${currentQuizQuestions.length}`;
+            let resultText = '';
+            let borderColor = '';
+            let encouragement = '';
+
+            // Using standard colors for score-level feedback (UX necessity)
+            if (percentage >= 90) { 
+                resultText = "Master Barista! Outstanding Knowledge.";
+                borderColor = 'border-green-600 bg-green-50';
+                encourgement = "Your detailed knowledge across all standards is excellent. You're ready to train others!";
+            } else if (percentage >= 75) { 
+                resultText = "Certified Barista! Very Strong Performance.";
+                borderColor = 'border-yellow-600 bg-yellow-50';
+                encourgement = "Solid performance. Review the recipe specifics and Golden Rule details to push into the 'Master' category.";
+            } else if (percentage >= 60) { 
+                resultText = "Developing Barista. Great Start!";
+                borderColor = 'border-orange-600 bg-orange-50';
+                encourgement = "You have a good grasp of the basics. Focus on the technical details: milk temperatures, color-coded jugs, and exact recipe measurements.";
+            } else { 
+                resultText = "Needs Practice. Let's Review the Hub.";
+                borderColor = 'border-red-600 bg-red-50';
+                encourgement = "Focus on the core sections: Golden Rules, Milk Steaming, and the 6 Steps of Service. Go through the Knowledge Hub and try again!";
+            }
+
+            const resultsHtml = `
+                <div class="text-center p-8">
+                    <h2 class="text-3xl font-bold">Quiz Complete!</h2>
+                    <p class="text-xl mt-4">Your Score: ${scoreText}</p>
+                    <div class="p-6 mt-6 rounded-lg border-l-8 ${borderColor}">
+                        <p class="text-4xl font-extrabold text-black">${percentage}%</p>
+                        <p class="text-xl font-bold mt-3 text-black">${resultText}</p>
+                        <p class="text-sm mt-2 text-gray-700">${encourgement}</p>
+                    </div>
+                    <div class="flex justify-center space-x-4 mt-8">
+                        <button id="restart-quiz" class="px-6 py-3 button-primary">
+                            Try Again
+                        </button>
+                        <button id="copy-results" class="px-6 py-3 button-primary">
+                            Copy Results
+                        </button>
+                    </div>
+                </div>
+            `;
+            quizApp.innerHTML = resultsHtml;
+            document.getElementById('restart-quiz').addEventListener('click', initQuiz);
+            document.getElementById('copy-results').addEventListener('click', () => copyResultsToClipboard(scoreText, percentage, resultText));
+        }
+        
+        function initQuiz() {
+            // 1. Shuffle the full pool
+            const shuffled = shuffleArray([...fullQuestionPool]);
+            
+            // 2. Select the first 30 questions
+            currentQuizQuestions = shuffled.slice(0, QUIZ_SIZE);
+
+            currentQuestionIndex = 0;
+            score = 0;
+            renderQuestion();
+        }
+
+        // Initialize the app on start button click
+        document.addEventListener('DOMContentLoaded', () => {
+             const initialStartButton = document.getElementById('start-button');
+             if(initialStartButton) {
+                 initialStartButton.addEventListener('click', initQuiz);
+             }
+        });
+        
+    </script>
+</body>
+</html>
+
+
